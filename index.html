@@ -3,233 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Controle Financeiro</title>
-    
-    <!-- Design Moderno via Bootstrap e FontAwesome -->
-    <link href="https://jsdelivr.net" rel="stylesheet">
+    <title>Meu Dashboard Financeiro</title>
+    <!-- Tailwind CSS para o visual moderno e FontAwesome para os ícones -->
+    <script src="https://tailwindcss.com"></script>
     <link href="https://cloudflare.com" rel="stylesheet">
     <script src="https://jsdelivr.net"></script>
-
-    <style>
-        @import url('https://googleapis.com');
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: #f4f6f9; 
-            color: #212529; 
-        }
-        .navbar-custom {
-            background-color: #1e1e2f;
-            color: #ffffff;
-            border-radius: 12px;
-        }
-        .card-custom {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            background: #ffffff;
-        }
-        .btn-custom {
-            background-color: #4f46e5;
-            color: white;
-            border-radius: 8px;
-        }
-        .btn-custom:hover {
-            background-color: #4338ca;
-            color: white;
-        }
-    </style>
 </head>
-<body class="container py-4">
-    
-    <!-- Header Modernizado -->
-    <header class="navbar-custom p-4 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-        <div>
-            <h1 class="h3 mb-1 font-weight-bold"><i class="fas fa-wallet text-info me-2"></i> Meu Dashboard Financeiro</h1>
-            <p class="small text-muted mb-0" style="color: #a0aec0 !important;">Controle inteligente de gastos, planejamento e projeções</p>
-        </div>
-        <div class="d-flex align-items-center gap-2 bg-dark p-2 rounded border border-secondary">
-            <label for="rendaMensal" class="text-white text-nowrap mb-0 me-2">Renda Líquida:</label>
-            <div class="input-group">
-                <span class="input-group-text bg-secondary text-white border-0">R$</span>
-                <input type="number" id="rendaMensal" value="5000" class="form-control bg-light border-0 fw-bold text-end text-dark" style="width: 120px;" onchange="atualizarDashboard()">
-            </div>
-        </div>
-    </header>
+<body class="bg-gray-100 font-sans min-h-screen p-4 md:p-6 text-gray-800">
 
-    <!-- Cards de Resumo -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-4">
-            <div class="card card-custom p-3 border-start border-success border-4">
-                <div class="text-muted text-uppercase small fw-bold">Total de Gastos</div>
-                <div class="h3 fw-bold text-dark mt-1" id="totalGastos">R$ 0,00</div>
+    <div class="max-w-7xl mx-auto space-y-6">
+        
+        <!-- Topo / Header -->
+        <header class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    <span class="p-2 bg-indigo-50 text-indigo-600 rounded-xl"><i class="fas fa-wallet"></i></span> 
+                    Meu Dashboard Financeiro
+                </h1>
+                <p class="text-sm text-gray-500 mt-1">Controle inteligente de gastos, planejamento e projeções</p>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card card-custom p-3 border-start border-primary border-4">
-                <div class="text-muted text-uppercase small fw-bold">Saldo Restante</div>
-                <div class="h3 fw-bold text-dark mt-1" id="saldoRestante">R$ 5.000,00</div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card card-custom p-3 border-start border-warning border-4">
-                <div class="text-muted text-uppercase small fw-bold">Regra 50/30/20</div>
-                <div class="h3 fw-bold text-dark mt-1" id="statusRegra">0% / 50%</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Layout de Colunas -->
-    <div class="row g-4">
-        <div class="col-lg-8">
-            <div class="card card-custom p-4 mb-4">
-                <h2 class="h5 fw-bold mb-3 border-bottom pb-2"><i class="fas fa-plus-circle text-success me-2"></i> Novo Lançamento</h2>
-                <form id="formGasto" class="row g-3 align-items-end" onsubmit="adicionarGasto(event)">
-                    <div class="col-md-4">
-                        <label class="form-label small fw-medium">Descrição</label>
-                        <input type="text" id="descGasto" required class="form-control" placeholder="Ex: Aluguel...">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label small fw-medium">Categoria</label>
-                        <select id="catGasto" required class="form-select">
-                            <option value="Moradia">Moradia</option>
-                            <option value="Alimentação">Alimentação</option>
-                            <option value="Transporte">Transporte</option>
-                            <option value="Lazer">Lazer</option>
-                            <option value="Outros">Outros</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label small fw-medium">Total (R$)</label>
-                        <input type="number" id="valorGasto" required min="0.01" step="0.01" class="form-control text-end" placeholder="0.00">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label small fw-medium">Parcelas</label>
-                        <input type="number" id="parcelasGasto" value="1" min="1" max="120" required class="form-control text-center">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label small fw-medium">1ª Parcela</label>
-                        <input type="date" id="dataGasto" required class="form-control">
-                    </div>
-                    <div class="col-md-9 text-end">
-                        <button type="submit" class="btn btn-custom px-4 py-2"><i class="fas fa-check me-2"></i>Salvar Lançamento</button>
-                    </div>
-                </form>
-            </div>
-            <div class="card card-custom p-4">
-                <h2 class="h5 fw-bold mb-3 border-bottom pb-2"><i class="fas fa-list text-primary me-2"></i> Histórico de Despesas</h2>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light text-secondary text-uppercase small">
-                            <tr>
-                                <th>Descrição</th>
-                                <th>Categoria</th>
-                                <th class="text-end">Valor</th>
-                                <th class="text-center">Data</th>
-                                <th class="text-center">Parc.</th>
-                                <th class="text-center">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="listaGastos" class="text-secondary">
-                            <!-- Injetado via JS -->
-                        </tbody>
-                    </table>
+            
+            <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-200">
+                <label for="rendaMensal" class="font-semibold text-gray-700 whitespace-nowrap">Renda Líquida:</label>
+                <div class="relative flex-1">
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium">R$</span>
+                    <input type="number" id="rendaMensal" value="5000" class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-lg font-bold text-gray-800 transition-all text-right" onchange="atualizarDashboard()">
                 </div>
             </div>
-        </div>
+        </header>
 
-        <div class="col-lg-4">
-            <div class="card card-custom p-4 sticky-top" style="top: 24px;">
-                <h2 class="h5 fw-bold mb-3 border-bottom pb-2"><i class="fas fa-chart-pie text-warning me-2"></i> Distribuição</h2>
-                <canvas id="graficoCategorias" class="w-100" style="max-height: 260px;"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let gastos = JSON.parse(localStorage.getItem('gastos_dashboard')) || [];
-        let meuGrafico = null;
-
-        function formatarMoeda(valor) {
-            return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        }
-
-        function adicionarGasto(event) {
-            event.preventDefault();
-            const desc = document.getElementById('descGasto').value;
-            const categoria = document.getElementById('catGasto').value;
-            const valor = parseFloat(document.getElementById('valorGasto').value);
-            const data = document.getElementById('dataGasto').value;
-            const parcelas = parseInt(document.getElementById('parcelasGasto').value);
-
-            gastos.push({ id: Date.now(), desc, categoria, valor, data, parcelas });
-            localStorage.setItem('gastos_dashboard', JSON.stringify(gastos));
+        <!-- Grade Principal -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            document.getElementById('formGasto').reset();
-            document.getElementById('parcelasGasto').value = 1;
-            atualizarDashboard();
-        }
+            <!-- Coluna da Esquerda: Lançamentos -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- Formulário de Novo Lançamento -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="text-emerald-500"><i class="fas fa-plus-circle"></i></span> Novo Lançamento
+                    </h2>
+                    <form id="formGasto" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end" onsubmit="adicionarGasto(event)">
+                        <div class="md:col-span-4">
+                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Descrição</label>
+                            <input type="text" id="descGasto" required class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="Ex: Aluguel...">
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Categoria</label>
+                            <select id="catGasto" required class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                                <option value="Essenciais">Essenciais (Meta: 50%)</option>
+                                <option value="Desejos">Desejos (Meta: 30%)</option>
+                                <option value="Poupança">Poupança (Meta: 20%)</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total (R$)</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">R$</span>
+                                <input type="number" id="valorGasto" required min="0.01" step="0.01" class="w-full pl-8 pr-3 p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-right transition-all" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="md:col-span-2">
+                            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-xl transition-colors flex justify-center items-center gap-2 shadow-sm shadow-indigo-100">
+                                <i class="fas fa-check"></i> Salvar
+                            </button>
+                        </div>
+                    </form>
+                </div>
 
-        function deletarGasto(id) {
-            gastos = gastos.filter(g => g.id !== id);
-            localStorage.setItem('gastos_dashboard', JSON.stringify(gastos));
-            atualizarDashboard();
-        }
+                <!-- Histórico de Lançamentos -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                            <span class="text-indigo-500"><i class="fas fa-list"></i></span> Lançamentos
+                        </h2>
+                        <div class="flex items-center gap-2">
+                            <button onclick="exportarDados()" class="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold text-sm py-2 px-3 rounded-xl transition-all flex items-center gap-1.5 border border-emerald-200">
+                                <i class="fas fa-file-export"></i> Exportar
+                            </button>
+                            <span class="bg-red-500 text-white text-xs font-bold px-3 py-2 rounded-xl" id="badgeTotal">Total: R$ 0,00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                    <th class="pb-3">Descrição</th>
+                                    <th class="pb-3">Categoria</th>
+                                    <th class="pb-3 text-right">Valor</th>
+                                    <th class="pb-3 text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listaGastos" class="divide-y divide-gray-50 text-sm text-gray-600">
+                                <!-- Preenchido via Javascript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
-        function atualizarDashboard() {
-            const renda = parseFloat(document.getElementById('rendaMensal').value) || 0;
-            const lista = document.getElementById('listaGastos');
-            lista.innerHTML = '';
-            let total = 0;
-            let categoriasValores = { 'Moradia': 0, 'Alimentação': 0, 'Transporte': 0, 'Lazer': 0, 'Outros': 0 };
+            <!-- Coluna da Direita: Painéis e Gráficos -->
+            <div class="space-y-6">
+                
+                <!-- Painel de Poupança/Sobra -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 relative overflow-hidden">
+                    <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Potencial de Poupança / Sobra</div>
+                    <div class="text-3xl font-black text-gray-900 mt-1" id="saldoSobra">R$ 5.000,00</div>
+                    <div class="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full mt-2" id="percentualRenda">
+                        100.0% da renda
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-gray-50 flex justify-between items-center text-xs text-gray-400">
+                        <span id="labelGastosBarra">Gastos: 0.0%</span>
+                        <span>Limite ideal: 80%</span>
+                    </div>
+                    <div class="w-full bg-gray-100 h-1.5 rounded-full mt-2 overflow-hidden">
+                        <div class="bg-indigo-600 h-full transition-all duration-500" id="barraProgresso" style="width: 0%"></div>
+                    </div>
+                </div>
 
-            gastos.forEach(g => {
-                total += g.valor;
-                if (categoriasValores[g.categoria] !== undefined) {
-                    categoriasValores[g.categoria] += g.valor;
-                } else {
-                    categoriasValores['Outros'] += g.valor;
-                }
+                <!-- Análise da Regra 50/30/20 -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
+                    <div class="flex justify-between items-center border-b border-gray-50 pb-2">
+                        <h3 class="text-sm font-bold text-gray-900">Análise Regra 50/30/20</h3>
+                        <span class="text-indigo-500"><i class="fas fa-scale-balanced"></i></span>
+                    </div>
+                    
+                    <!-- Essenciais -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs font-medium">
+                            <span class="text-gray-500">Essenciais (Meta: 50%)</span>
+                            <span class="text-gray-900 font-bold" id="txtEssencial">R$ 0,00 (0.0%)</span>
+                        </div>
+                        <div class="w-full bg-gray-100 h-1 rounded-full overflow-hidden">
+                            <div class="bg-sky-400 h-full transition-all" id="barraEssencial" style="width: 0%"></div>
+                        </div>
+                    </div>
 
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="fw-medium text-dark">${g.desc}</td>
-                    <td><span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1">${g.categoria}</span></td>
-                    <td class="text-end fw-bold text-dark">${formatarMoeda(g.valor)}</td>
-                    <td class="text-center small">${g.data.split('-').reverse().join('/')}</td>
-                    <td class="text-center small">${g.parcelas}x</td>
-                    <td class="text-center"><button onclick="deletarGasto(${g.id})" class="btn btn-link text-danger p-0 border-0"><i class="fas fa-trash-alt"></i></button></td>
-                `;
-                lista.appendChild(tr);
-            });
-
-            if (gastos.length === 0) {
-                lista.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4 small">Nenhum lançamento registrado.</td></tr>`;
-            }
-
-            document.getElementById('totalGastos').innerText = formatarMoeda(total);
-            document.getElementById('saldoRestante').innerText = formatarMoeda(renda - total);
-            document.getElementById('statusRegra').innerText = `${renda > 0 ? ((total / renda) * 100).toFixed(1) : 0}% / 50%`;
-
-            atualizarGrafico(categoriasValores);
-        }
-
-        function atualizarGrafico(dados) {
-            const ctx = document.getElementById('graficoCategorias').getContext('2d');
-            if (meuGrafico) meuGrafico.destroy();
-            meuGrafico = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(dados),
-                    datasets: [{
-                        data: Object.values(dados),
-                        backgroundColor: ['#4f46e5', '#198754', '#ffc107', '#dc3545', '#6c757d']
-                    }]
-                },
-                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-            });
-        }
-
-        window.onload = function() { atualizarDashboard(); }
-    </script>
-</body>
-</html>
+                    <!-- Desejos -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs font-medium">
+                            <span class="text-gray-500">Desejos (Meta: 30%)</span>
+                            <span class="text-gray-900 font-bold" id="txtDesejos">R$ 0,00 (0.0%)</span>
+                        </div>
+                        <div class="w-full bg-gray-100 h-1 rounded-full overflow-hidden">
