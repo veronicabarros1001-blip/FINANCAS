@@ -6,9 +6,9 @@
     <title>Painel de Controle Financeiro</title>
     
     <!-- Bibliotecas Necessárias -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://tailwindcss.com"></script>
+    <script src="https://jsdelivr.net"></script>
+    <link href="https://cloudflare.com" rel="stylesheet">
     
     <!-- Configuração do Tailwind -->
     <script>
@@ -32,7 +32,7 @@
     </script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://googleapis.com');
         body { 
             font-family: 'Inter', sans-serif; 
             background-color: #f3f4f6; 
@@ -70,6 +70,22 @@
             </div>
         </header>
 
+        <!-- Resumo de Cards Principais -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-xl card-shadow border-l-4 border-secondary">
+                <div class="text-sm font-medium text-gray-500 uppercase">Total de Gastos</div>
+                <div class="text-2xl font-bold text-dark mt-2" id="totalGastos">R$ 0,00</div>
+            </div>
+            <div class="bg-white p-6 rounded-xl card-shadow border-l-4 border-primary">
+                <div class="text-sm font-medium text-gray-500 uppercase">Saldo Restante</div>
+                <div class="text-2xl font-bold text-dark mt-2" id="saldoRestante">R$ 5.000,00</div>
+            </div>
+            <div class="bg-white p-6 rounded-xl card-shadow border-l-4 border-warning">
+                <div class="text-sm font-medium text-gray-500 uppercase">Regra 50/30/20 (Essenciais)</div>
+                <div class="text-2xl font-bold text-dark mt-2" id="statusRegra">0% / 50%</div>
+            </div>
+        </div>
+
         <!-- Main Content Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
@@ -88,8 +104,13 @@
                         <div class="md:col-span-2 relative">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
                             <div class="relative">
-                                <input type="text" id="catGasto" required class="w-full p-2 border rounded-md focus:ring-2 focus:ring-primary outline-none" placeholder="Selecione..." autocomplete="off">
-                                <div id="catDropdown" class="absolute z-10 w-full bg-white border rounded-md mt-1 shadow-lg hidden max-h-40 overflow-y-auto"></div>
+                                <select id="catGasto" required class="w-full p-2 border rounded-md focus:ring-2 focus:ring-primary outline-none">
+                                    <option value="Moradia">Moradia</option>
+                                    <option value="Alimentação">Alimentação</option>
+                                    <option value="Transporte">Transporte</option>
+                                    <option value="Lazer">Lazer</option>
+                                    <option value="Outros">Outros</option>
+                                </select>
                             </div>
                         </div>
                         <div class="md:col-span-2">
@@ -114,789 +135,39 @@
                             <button type="submit" id="btnSalvar" class="w-full bg-primary hover:bg-indigo-700 text-white font-medium py-2 px-2 rounded-md transition-colors flex justify-center items-center gap-2 text-sm">
                                 <i class="fas fa-check"></i> Salvar
                             </button>
-                            <button type="button" id="btnCancelarEdicao" class="w-full mt-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-2 rounded-md transition-colors hidden text-xs" onclick="cancelarEdicao()">
-                                Cancelar
-                            </button>
-                        </div>
-                        
-                        <!-- Modal for New Category classification -->
-                        <div id="tipoCategoriaSelect" class="md:col-span-12 bg-blue-50 p-3 rounded-md border border-blue-100 flex items-center justify-between text-sm hidden">
-                            <span class="text-blue-800"><i class="fas fa-info-circle mr-1"></i> Nova categoria. Classifique para a regra 50/30/20:</span>
-                            <div class="flex gap-2">
-                                <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="tipoCat" value="essencial" checked> Essencial</label>
-                                <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="tipoCat" value="desejo"> Desejo</label>
-                            </div>
                         </div>
                     </form>
                 </div>
 
-                <div class="bg-white rounded-xl card-shadow flex flex-col h-[400px]">
-                    <div class="p-4 border-b bg-gray-50 rounded-t-xl flex flex-wrap gap-2 justify-between items-center">
-                        <h2 class="text-lg font-semibold flex items-center gap-2"><i class="fas fa-list-ul text-gray-500"></i> Lançamentos</h2>
-                        <div class="flex gap-2">
-                            <button onclick="exportarParaExcel()" class="bg-secondary hover:bg-green-600 text-white px-3 py-1.5 rounded text-sm font-medium transition-colors shadow-sm flex items-center gap-2">
-                                <i class="fas fa-file-excel"></i> Exportar
-                            </button>
-                            <span id="totalGastosBadge" class="bg-danger text-white px-3 py-1.5 rounded text-sm font-bold shadow-sm">Total: R$ 0,00</span>
-                        </div>
-                    </div>
-                    <div class="flex-1 overflow-y-auto p-4">
-                        <div id="listaGastos" class="space-y-3">
-                            <div class="text-center text-gray-400 py-10" id="msgVazia">
-                                <i class="fas fa-receipt text-4xl mb-3 opacity-50"></i>
-                                <p>Nenhum lançamento adicionado ainda.</p>
-                            </div>
-                        </div>
+                <!-- Tabela de Lançamentos -->
+                <div class="bg-white rounded-xl p-6 card-shadow">
+                    <h2 class="text-lg font-semibold mb-4 border-b pb-2 flex items-center gap-2">
+                        <i class="fas fa-list text-primary"></i> Histórico de Despesas
+                    </h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-light text-gray-700 text-sm uppercase">
+                                    <th class="p-3">Descrição</th>
+                                    <th class="p-3">Categoria</th>
+                                    <th class="p-3 text-right">Valor</th>
+                                    <th class="p-3 text-center">Data</th>
+                                    <th class="p-3 text-center">Parc.</th>
+                                    <th class="p-3 text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listaGastos" class="divide-y text-gray-600">
+                                <!-- Elementos injetados via JavaScript -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
+
             </div>
 
-            <!-- Right Column: Analytics & Summaries -->
+            <!-- Right Column: Charts and Analysis -->
             <div class="space-y-6">
-                
-                <div class="bg-white rounded-xl p-6 card-shadow border-l-4 border-secondary">
-                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Potencial de Poupança / Sobra</h3>
-                    <div class="flex items-end justify-between">
-                        <div>
-                            <p id="valorSobra" class="text-3xl font-bold text-gray-800">R$ 0,00</p>
-                            <p class="text-sm mt-1 font-medium" id="statusSobraText">
-                                <span id="percentualSobra" class="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs">0% da renda</span>
-                            </p>
-                        </div>
-                        <div id="iconSobra" class="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xl shadow-inner">
-                            <i class="fas fa-piggy-bank"></i>
-                        </div>
-                    </div>
-                    <div class="mt-4 h-2 w-full bg-gray-200 rounded-full overflow-hidden">
-                        <div id="barraProgressoGastos" class="h-full bg-primary transition-all duration-500" style="width: 0%"></div>
-                    </div>
-                    <div class="flex justify-between text-xs text-gray-500 mt-1">
-                        <span>Gastos: <span id="percentualGastosText">0%</span></span>
-                        <span>Limite ideal: 80%</span>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-xl p-5 card-shadow">
-                    <h3 class="text-sm font-semibold text-gray-700 mb-4 border-b pb-2 flex items-center justify-between">
-                        <span>Análise Regra 50/30/20</span>
-                        <i class="fas fa-balance-scale text-primary"></i>
-                    </h3>
-                    <div class="space-y-4">
-                        <div>
-                            <div class="flex justify-between text-sm mb-1">
-                                <span class="font-medium text-gray-600">Essenciais (Meta: 50%)</span>
-                                <span id="textoEssencial" class="font-bold">R$ 0 (0%)</span>
-                            </div>
-                            <div class="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                                <div id="barraEssencial" class="h-full bg-blue-500 transition-all duration-500" style="width: 0%"></div>
-                            </div>
-                            <p id="avisoEssencial" class="text-[10px] text-right mt-1 hidden text-red-500">Acima do limite!</p>
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-sm mb-1">
-                                <span class="font-medium text-gray-600">Desejos (Meta: 30%)</span>
-                                <span id="textoDesejos" class="font-bold">R$ 0 (0%)</span>
-                            </div>
-                            <div class="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                                <div id="barraDesejos" class="h-full bg-purple-500 transition-all duration-500" style="width: 0%"></div>
-                            </div>
-                            <p id="avisoDesejos" class="text-[10px] text-right mt-1 hidden text-red-500">Acima do limite!</p>
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-sm mb-1">
-                                <span class="font-medium text-gray-600">Poupança (Meta: 20%)</span>
-                                <span id="textoPoupanca" class="font-bold">R$ 0 (0%)</span>
-                            </div>
-                            <div class="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                                <div id="barraPoupanca" class="h-full bg-green-500 transition-all duration-500" style="width: 0%"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-xl p-5 card-shadow flex flex-col items-center">
-                    <h3 class="text-sm font-semibold text-gray-700 mb-2 w-full border-b pb-2">Distribuição por Categoria</h3>
-                    <div class="relative w-full aspect-square max-w-[250px] mx-auto mt-2">
-                        <canvas id="graficoCategorias"></canvas>
-                        <div id="chartPlaceholder" class="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">
-                            Adicione gastos
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="lg:col-span-3 bg-white rounded-xl p-6 card-shadow border-t-4 border-primary">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                    <i class="fas fa-chart-line text-primary"></i> Projeção de Despesas Futuras (Parcelamentos)
-                </h3>
-                <div class="relative w-full h-64">
-                    <canvas id="graficoProjecao"></canvas>
-                </div>
-            </div>
-
-            <div class="lg:col-span-3 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-6 card-shadow text-white">
-                <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-                    <i class="fas fa-lightbulb text-yellow-400"></i> Consultor Financeiro Virtual
-                </h2>
-                <p class="text-gray-300 text-sm mb-4">Baseado no seu padrão atual, aqui estão as recomendações para otimizar seu orçamento:</p>
-                <div id="recomendacoesLista" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-gray-700/50 p-4 rounded-lg border border-gray-600 text-center text-gray-400 col-span-1 md:col-span-3 py-8">
-                        Forneça mais dados de gastos para gerar recomendações personalizadas.
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="modalOverlay" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity">
-        <div class="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full mx-4 transform transition-transform" id="modalContent">
-            <h3 id="modalTitle" class="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
-                <i class="fas fa-bell text-warning"></i> Atenção
-            </h3>
-            <p id="modalMessage" class="text-gray-600 mb-6 mt-2 leading-relaxed">Mensagem aqui</p>
-            <div class="flex justify-end gap-3" id="modalActions">
-                <button id="modalBtnCancel" onclick="fecharModal()" class="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 font-medium rounded-lg transition-colors">Cancelar</button>
-                <button id="modalBtnConfirm" class="px-4 py-2 bg-primary text-white hover:bg-indigo-700 font-medium rounded-lg transition-colors">Confirmar</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let gastos = [];
-        let indexEditando = -1;
-        let grafico = null;
-        let graficoProj = null; 
-        let confirmCallback = null;
-        
-        const categoriasMeta = {
-            'Moradia': { tipo: 'essencial', cor: '#3b82f6' },
-            'Alimentação': { tipo: 'essencial', cor: '#10b981' },
-            'Saúde': { tipo: 'essencial', cor: '#ef4444' },
-            'Transporte': { tipo: 'essencial', cor: '#f59e0b' },
-            'Educação': { tipo: 'essencial', cor: '#6366f1' },
-            'Lazer': { tipo: 'desejo', cor: '#ec4899' },
-            'Compras': { tipo: 'desejo', cor: '#8b5cf6' },
-            'Assinaturas': { tipo: 'desejo', cor: '#06b6d4' },
-            'Outros Essenciais': { tipo: 'essencial', cor: '#64748b' },
-            'Outros Desejos': { tipo: 'desejo', cor: '#a8a29e' },
-        };
-
-        const paletaCores = ['#f43f5e', '#d946ef', '#8b5cf6', '#3b82f6', '#0ea5e9', '#14b8a6', '#22c55e', '#84cc16', '#eab308', '#f97316'];
-        
-        const formGasto = document.getElementById('formGasto');
-        const inputDesc = document.getElementById('descGasto');
-        const inputCat = document.getElementById('catGasto');
-        const inputValor = document.getElementById('valorGasto');
-        const inputData = document.getElementById('dataGasto');
-        const inputParcelas = document.getElementById('parcelasGasto');
-        const inputRenda = document.getElementById('rendaMensal');
-        const listaDOM = document.getElementById('listaGastos');
-        const msgVazia = document.getElementById('msgVazia');
-        const btnSalvar = document.getElementById('btnSalvar');
-        const btnCancelar = document.getElementById('btnCancelarEdicao');
-        const catDropdown = document.getElementById('catDropdown');
-        const tipoSelectUI = document.getElementById('tipoCategoriaSelect');
-        const radiosTipoCat = document.getElementsByName('tipoCat');
-        const tituloForm = document.getElementById('tituloFormulario');
-
-        const formatarMoeda = (valor) => {
-            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
-        };
-
-        function mostrarModal(titulo, mensagem, tipo = 'alert', callback = null) {
-            document.getElementById('modalTitle').innerHTML = titulo;
-            document.getElementById('modalMessage').innerText = mensagem;
-            
-            const btnCancel = document.getElementById('modalBtnCancel');
-            const btnConfirm = document.getElementById('modalBtnConfirm');
-            
-            if (tipo === 'alert') {
-                btnCancel.classList.add('hidden');
-                btnConfirm.innerText = 'Entendi';
-                btnConfirm.className = 'px-4 py-2 bg-primary text-white hover:bg-indigo-700 font-medium rounded-lg transition-colors';
-                btnConfirm.onclick = fecharModal;
-            } else if (tipo === 'confirm') {
-                btnCancel.classList.remove('hidden');
-                btnConfirm.innerText = 'Confirmar';
-                btnConfirm.className = 'px-4 py-2 bg-danger text-white hover:bg-red-700 font-medium rounded-lg transition-colors shadow-sm';
-                confirmCallback = callback;
-                btnConfirm.onclick = () => {
-                    if(confirmCallback) confirmCallback();
-                    fecharModal();
-                };
-            }
-            document.getElementById('modalOverlay').classList.remove('hidden');
-        }
-
-        function fecharModal() {
-            document.getElementById('modalOverlay').classList.add('hidden');
-            confirmCallback = null;
-        }
-
-        function init() {
-            carregarDadosLocais();
-            configurarInputCategoria();
-            if (inputData && !inputData.value) {
-                inputData.valueAsDate = new Date();
-            }
-            atualizarDashboard();
-        }
-
-        function configurarInputCategoria() {
-            inputCat.addEventListener('focus', mostrarDropdownCategorias);
-            inputCat.addEventListener('input', filtrarCategorias);
-            document.addEventListener('click', (e) => {
-                if(e.target !== inputCat && e.target !== catDropdown) {
-                    catDropdown.classList.add('hidden');
-                }
-            });
-            inputCat.addEventListener('change', verificarCategoriaNova);
-            inputCat.addEventListener('keyup', verificarCategoriaNova);
-        }
-
-        function verificarCategoriaNova() {
-            const val = inputCat.value.trim();
-            if(val && !categoriasMeta[val]) {
-                tipoSelectUI.classList.remove('hidden');
-            } else {
-                tipoSelectUI.classList.add('hidden');
-            }
-        }
-
-        function mostrarDropdownCategorias() {
-            renderizarOpcoesDropdown(Object.keys(categoriasMeta));
-        }
-
-        function filtrarCategorias() {
-            const filtro = inputCat.value.toLowerCase();
-            const keys = Object.keys(categoriasMeta).filter(k => k.toLowerCase().includes(filtro));
-            renderizarOpcoesDropdown(keys);
-        }
-
-        function renderizarOpcoesDropdown(keys) {
-            if(keys.length === 0) {
-                catDropdown.innerHTML = '<div class="p-2 text-sm text-gray-500 italic">Digite para criar nova...</div>';
-            } else {
-                catDropdown.innerHTML = keys.map(k => 
-                    `<div class="p-2 hover:bg-gray-100 cursor-pointer text-sm" onclick="selecionarCategoria('${k}')">
-                        <span class="inline-block w-3 h-3 rounded-full mr-2" style="background-color: ${categoriasMeta[k].cor}"></span>${k}
-                    </div>`
-                ).join('');
-            }
-            catDropdown.classList.remove('hidden');
-        }
-
-        window.selecionarCategoria = function(cat) {
-            inputCat.value = cat;
-            catDropdown.classList.add('hidden');
-            verificarCategoriaNova();
-        }
-
-        function adicionarGasto(e) {
-            e.preventDefault();
-            
-            const desc = inputDesc.value.trim();
-            const cat = inputCat.value.trim();
-            const valorTotal = parseFloat(inputValor.value);
-            const dataInicialStr = inputData ? inputData.value : new Date().toISOString().split('T')[0];
-            const parcelas = inputParcelas ? parseInt(inputParcelas.value) : 1;
-            
-            if (!desc || !cat || isNaN(valorTotal) || valorTotal <= 0 || isNaN(parcelas) || parcelas <= 0) return;
-
-            if (!categoriasMeta[cat]) {
-                const tipoSelecionado = Array.from(radiosTipoCat).find(r => r.checked).value;
-                const corAleatoria = paletaCores[Object.keys(categoriasMeta).length % paletaCores.length];
-                categoriasMeta[cat] = { tipo: tipoSelecionado, cor: corAleatoria };
-            }
-
-            const valorParcela = valorTotal / parcelas;
-            
-            // Corrige fuso adicionando hora neutra para evitar erro de dia anterior
-            let baseDate = new Date(dataInicialStr + 'T12:00:00');
-
-            if (indexEditando >= 0) {
-                const gastoEditado = gastos[indexEditando];
-                gastoEditado.desc = desc;
-                gastoEditado.cat = cat;
-                gastoEditado.valor = valorTotal;
-                gastoEditado.data = dataInicialStr;
-                cancelarEdicao();
-            } else {
-                for (let i = 0; i < parcelas; i++) {
-                    const dataParcela = new Date(baseDate.getFullYear(), baseDate.getMonth() + i, baseDate.getDate());
-                    const mesAnoStr = `${dataParcela.getFullYear()}-${String(dataParcela.getMonth()+1).padStart(2,'0')}-${String(dataParcela.getDate()).padStart(2,'0')}`;
-                    const sufixoParcela = parcelas > 1 ? ` (${i+1}/${parcelas})` : '';
-                    
-                    gastos.push({ 
-                        id: Date.now() + i, 
-                        desc: desc + sufixoParcela, 
-                        cat: cat, 
-                        valor: valorParcela,
-                        data: mesAnoStr
-                    });
-                }
-            }
-
-            formGasto.reset();
-            if (inputData) inputData.valueAsDate = new Date();
-            verificarCategoriaNova(); 
-            inputDesc.focus();
-            
-            salvarDadosLocais();
-            atualizarDashboard();
-        }
-
-        window.editarGasto = function(id) {
-            const index = gastos.findIndex(g => g.id === id);
-            if(index === -1) return;
-            
-            const gasto = gastos[index];
-            inputDesc.value = gasto.desc;
-            inputCat.value = gasto.cat;
-            inputValor.value = gasto.valor;
-            if(inputData) inputData.value = gasto.data || '';
-            if(inputParcelas) {
-                inputParcelas.value = 1;
-                inputParcelas.disabled = true;
-            }
-            
-            indexEditando = index;
-            
-            tituloForm.innerHTML = '<i class="fas fa-edit text-warning"></i> Corrigir Lançamento';
-            document.getElementById('cardFormulario').classList.replace('border-primary', 'border-warning');
-            
-            btnSalvar.innerHTML = '<i class="fas fa-save"></i> Atualizar';
-            btnSalvar.classList.replace('bg-primary', 'bg-warning');
-            btnSalvar.classList.replace('hover:bg-indigo-700', 'hover:bg-yellow-600');
-            btnCancelar.classList.remove('hidden');
-            
-            verificarCategoriaNova();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        window.cancelarEdicao = function() {
-            formGasto.reset();
-            indexEditando = -1;
-            
-            if(inputParcelas) inputParcelas.disabled = false;
-            if(inputData) inputData.valueAsDate = new Date();
-            
-            tituloForm.innerHTML = '<i class="fas fa-plus-circle text-secondary"></i> Novo Lançamento';
-            document.getElementById('cardFormulario').classList.replace('border-warning', 'border-primary');
-            
-            btnSalvar.innerHTML = '<i class="fas fa-check"></i> Salvar';
-            btnSalvar.classList.replace('bg-warning', 'bg-primary');
-            btnSalvar.classList.replace('hover:bg-yellow-600', 'hover:bg-indigo-700');
-            btnCancelar.classList.add('hidden');
-            verificarCategoriaNova();
-        }
-
-        window.removerGasto = function(id) {
-            mostrarModal(
-                '<i class="fas fa-trash-alt text-danger"></i> Excluir Lançamento', 
-                'Tem certeza que deseja remover este lançamento? Esta ação não poderá ser desfeita.', 
-                'confirm', 
-                () => {
-                    gastos = gastos.filter(g => g.id !== id);
-                    if(indexEditando >= 0 && gastos[indexEditando] && gastos[indexEditando].id === id) {
-                        cancelarEdicao();
-                    }
-                    salvarDadosLocais();
-                    atualizarDashboard();
-                }
-            );
-        }
-
-        window.exportarParaExcel = function() {
-            if (gastos.length === 0) {
-                mostrarModal('<i class="fas fa-info-circle text-primary"></i> Sem dados', 'Não existem lançamentos para serem exportados.', 'alert');
-                return;
-            }
-            let csvContent = "\uFEFF"; 
-            csvContent += "Data;Descrição;Categoria;Regra 50/30/20;Valor (R$)\n";
-            gastos.forEach(g => {
-                const tipo = categoriasMeta[g.cat]?.tipo || 'essencial';
-                const valorFormatado = g.valor.toFixed(2).replace('.', ',');
-                const descSegura = g.desc.replace(/;/g, ',');
-                const catSegura = g.cat.replace(/;/g, ',');
-                const dataBR = g.data ? g.data.split('-').reverse().join('/') : '';
-                csvContent += `${dataBR};${descSegura};${catSegura};${tipo.toUpperCase()};${valorFormatado}\n`;
-            });
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            
-            const hoje = new Date();
-            const dataStr = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}-${String(hoje.getDate()).padStart(2,'0')}`;
-            link.download = `Painel_Financeiro_${dataStr}.csv`;
-            
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        window.atualizarDashboard = function() {
-            renderizarLista();
-            calcularEAtualizarResumos();
-        }
-
-        function renderizarLista() {
-            if (gastos.length === 0) {
-                listaDOM.innerHTML = '';
-                listaDOM.appendChild(msgVazia);
-                msgVazia.style.display = 'block';
-                document.getElementById('totalGastosBadge').innerText = 'Total: R$ 0,00';
-                return;
-            }
-            
-            msgVazia.style.display = 'none';
-            const gastosOrdenados = [...gastos].sort((a,b) => b.id - a.id);
-            
-            let html = '';
-            let total = 0;
-
-            gastosOrdenados.forEach(gasto => {
-                total += gasto.valor;
-                const meta = categoriasMeta[gasto.cat] || { cor: '#ccc', tipo: 'essencial' };
-                const badgeStyle = meta.tipo === 'essencial' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800';
-                
-                html += `
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded-lg hover:shadow-md transition-all bg-white gap-3">
-                    <div class="flex items-center gap-3">
-                        <div class="w-2 h-10 rounded-full" style="background-color: ${meta.cor}"></div>
-                        <div>
-                            <p class="font-semibold text-gray-800 leading-tight">${gasto.desc}</p>
-                            <div class="flex gap-2 items-center mt-1 text-xs">
-                                <span class="text-gray-500 font-medium">${gasto.cat}</span>
-                                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeStyle}">${meta.tipo.toUpperCase()}</span>
-                                ${gasto.data ? `<span class="text-gray-400 font-medium ml-1"><i class="far fa-calendar-alt"></i> ${gasto.data.split('-').reverse().join('/')}</span>` : ''}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4">
-                        <span class="font-bold text-gray-700 text-lg">${formatarMoeda(gasto.valor)}</span>
-                        <div class="flex gap-1">
-                            <button onclick="editarGasto(${gasto.id})" class="text-blue-600 bg-blue-50 hover:bg-blue-100 px-2 py-1.5 rounded transition-colors" title="Corrigir Lançamento"><i class="fas fa-edit"></i></button>
-                            <button onclick="removerGasto(${gasto.id})" class="text-red-600 bg-red-50 hover:bg-red-100 px-2 py-1.5 rounded transition-colors" title="Excluir Lançamento"><i class="fas fa-trash"></i></button>
-                        </div>
-                    </div>
-                </div>`;
-            });
-            
-            listaDOM.innerHTML = html;
-            document.getElementById('totalGastosBadge').innerText = `Total: ${formatarMoeda(total)}`;
-        }
-
-        function calcularEAtualizarResumos() {
-            const renda = parseFloat(inputRenda.value) || 0;
-            let totalGastos = 0;
-            let totalEssencial = 0;
-            let totalDesejos = 0;
-            const gastosPorCategoria = {};
-
-            gastos.forEach(g => {
-                totalGastos += g.valor;
-                const tipo = categoriasMeta[g.cat]?.tipo || 'essencial';
-                if (tipo === 'essencial') totalEssencial += g.valor;
-                else totalDesejos += g.valor;
-
-                if (gastosPorCategoria[g.cat]) {
-                    gastosPorCategoria[g.cat] += g.valor;
-                } else {
-                    gastosPorCategoria[g.cat] = g.valor;
-                }
-            });
-
-            const sobra = renda - totalGastos;
-            const percSobra = renda > 0 ? (sobra / renda) * 100 : 0;
-            const percGastos = renda > 0 ? (totalGastos / renda) * 100 : 0;
-
-            document.getElementById('valorSobra').innerText = formatarMoeda(sobra);
-            document.getElementById('percentualSobra').innerText = `${percSobra.toFixed(1)}% da renda`;
-            document.getElementById('percentualGastosText').innerText = `${percGastos.toFixed(1)}%`;
-            
-            const barraGastos = document.getElementById('barraProgressoGastos');
-            barraGastos.style.width = `${Math.min(percGastos, 100)}%`;
-            
-            const elSobra = document.getElementById('valorSobra');
-            const iconSobra = document.getElementById('iconSobra');
-            const percSobraBadge = document.getElementById('percentualSobra');
-
-            if (sobra < 0) {
-                elSobra.className = "text-3xl font-bold text-danger";
-                iconSobra.className = "h-12 w-12 rounded-full bg-red-100 flex items-center justify-center text-red-600 text-xl shadow-inner";
-                iconSobra.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
-                percSobraBadge.className = "bg-red-100 text-red-800 px-2 py-0.5 rounded text-xs";
-                barraGastos.className = "h-full bg-danger transition-all duration-500";
-            } else if (percSobra < 20) {
-                elSobra.className = "text-3xl font-bold text-gray-800";
-                iconSobra.className = "h-12 w-12 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600 text-xl shadow-inner";
-                iconSobra.innerHTML = '<i class="fas fa-piggy-bank"></i>';
-                percSobraBadge.className = "bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs";
-                barraGastos.className = "h-full bg-warning transition-all duration-500";
-            } else {
-                elSobra.className = "text-3xl font-bold text-gray-800";
-                iconSobra.className = "h-12 w-12 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xl shadow-inner";
-                iconSobra.innerHTML = '<i class="fas fa-piggy-bank"></i>';
-                percSobraBadge.className = "bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs";
-                barraGastos.className = "h-full bg-primary transition-all duration-500";
-            }
-
-            const percEssencial = renda > 0 ? (totalEssencial / renda) * 100 : 0;
-            const percDesejos = renda > 0 ? (totalDesejos / renda) * 100 : 0;
-            
-            document.getElementById('textoEssencial').innerText = `${formatarMoeda(totalEssencial)} (${percEssencial.toFixed(1)}%)`;
-            document.getElementById('barraEssencial').style.width = `${Math.min(percEssencial, 100)}%`;
-            const avEssencial = document.getElementById('avisoEssencial');
-            if(percEssencial > 50) { avEssencial.classList.remove('hidden'); document.getElementById('barraEssencial').classList.replace('bg-blue-500','bg-red-500'); }
-            else { avEssencial.classList.add('hidden'); document.getElementById('barraEssencial').classList.replace('bg-red-500','bg-blue-500'); }
-
-            document.getElementById('textoDesejos').innerText = `${formatarMoeda(totalDesejos)} (${percDesejos.toFixed(1)}%)`;
-            document.getElementById('barraDesejos').style.width = `${Math.min(percDesejos, 100)}%`;
-            const avDesejos = document.getElementById('avisoDesejos');
-            if(percDesejos > 30) { avDesejos.classList.remove('hidden'); document.getElementById('barraDesejos').classList.replace('bg-purple-500','bg-red-500'); }
-            else { avDesejos.classList.add('hidden'); document.getElementById('barraDesejos').classList.replace('bg-red-500','bg-purple-500'); }
-
-            document.getElementById('textoPoupanca').innerText = `${formatarMoeda(Math.max(0, sobra))} (${Math.max(0, percSobra).toFixed(1)}%)`;
-            const barraPoup = document.getElementById('barraPoupanca');
-            barraPoup.style.width = `${Math.min(Math.max(0, percSobra), 100)}%`;
-            if(percSobra < 20) { barraPoup.className = 'h-full bg-yellow-500 transition-all duration-500'; }
-            else { barraPoup.className = 'h-full bg-green-500 transition-all duration-500'; }
-
-            atualizarGrafico(gastosPorCategoria);
-            atualizarGraficoProjecao();
-            gerarRecomendacoes(percEssencial, percDesejos, percSobra, gastosPorCategoria, totalGastos);
-        }
-
-        function atualizarGraficoProjecao() {
-            const ctx = document.getElementById('graficoProjecao');
-            if(!ctx) return;
-
-            const gastosPorMes = {};
-            
-            gastos.forEach(g => {
-                const dataObj = g.data ? new Date(g.data + 'T12:00:00') : new Date();
-                const sortKey = `${dataObj.getFullYear()}${String(dataObj.getMonth()+1).padStart(2,'0')}`;
-                const labelMes = `${String(dataObj.getMonth()+1).padStart(2,'0')}/${dataObj.getFullYear()}`;
-                
-                if(!gastosPorMes[sortKey]) {
-                    gastosPorMes[sortKey] = { label: labelMes, valor: 0 };
-                }
-                gastosPorMes[sortKey].valor += g.valor;
-            });
-
-            const chaves = Object.keys(gastosPorMes).sort();
-            const labels = chaves.map(k => gastosPorMes[k].label);
-            const valores = chaves.map(k => gastosPorMes[k].valor);
-
-            if (graficoProj) {
-                graficoProj.data.labels = labels;
-                graficoProj.data.datasets[0].data = valores;
-                graficoProj.update();
-            } else {
-                graficoProj = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Despesas Projetadas (R$)',
-                            data: valores,
-                            backgroundColor: '#4f46e5',
-                            borderRadius: 4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        return formatarMoeda(context.raw);
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            y: { beginAtZero: true }
-                        }
-                    }
-                });
-            }
-        }
-
-        function atualizarGrafico(dados) {
-            const ctx = document.getElementById('graficoCategorias');
-            const placeholder = document.getElementById('chartPlaceholder');
-            
-            const categorias = Object.keys(dados);
-            const valores = Object.values(dados);
-
-            if (categorias.length === 0) {
-                placeholder.style.display = 'flex';
-                ctx.style.display = 'none';
-                if (grafico) grafico.destroy();
-                return;
-            }
-
-            placeholder.style.display = 'none';
-            ctx.style.display = 'block';
-
-            const coresBg = categorias.map(c => categoriasMeta[c]?.cor || '#ccc');
-
-            if (grafico) {
-                grafico.data.labels = categorias;
-                grafico.data.datasets[0].data = valores;
-                grafico.data.datasets[0].backgroundColor = coresBg;
-                grafico.update();
-            } else {
-                grafico = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: categorias,
-                        datasets: [{
-                            data: valores,
-                            backgroundColor: coresBg,
-                            borderWidth: 2,
-                            borderColor: '#ffffff'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'right',
-                                labels: { boxWidth: 12, font: { size: 10 } }
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        return formatarMoeda(context.raw);
-                                    }
-                                }
-                            }
-                        },
-                        cutout: '65%'
-                    }
-                });
-            }
-        }
-
-        function gerarRecomendacoes(percEss, percDes, percSob, dadosCat, totalGastos) {
-            const container = document.getElementById('recomendacoesLista');
-            if (totalGastos === 0) {
-                 container.innerHTML = '<div class="bg-gray-700/50 p-4 rounded-lg border border-gray-600 text-center text-gray-400 col-span-1 md:col-span-3 py-8">Adicione gastos para visualizar recomendações do consultor.</div>';
-                 return;
-            }
-
-            let recomendacoes = [];
-            const maioresCategorias = Object.entries(dadosCat).sort((a, b) => b[1] - a[1]).slice(0, 3);
-
-            if (percSob < 0) {
-                recomendacoes.push({
-                    icone: 'fa-exclamation-circle text-red-400',
-                    titulo: 'Déficit Urgente',
-                    texto: `Seus gastos superam a renda. Pare todos os gastos com categoria "Desejos" imediatamente.`
-                });
-            }
-
-            if (percDes > 30) {
-                const viloesDesejos = Object.entries(dadosCat).filter(([cat, _]) => categoriasMeta[cat]?.tipo === 'desejo').sort((a, b) => b[1] - a[1]);
-                if (viloesDesejos.length > 0) {
-                    recomendacoes.push({
-                        icone: 'fa-shopping-bag text-purple-400',
-                        titulo: 'Corte em Desejos',
-                        texto: `Reduza os gastos em <strong>${viloesDesejos[0][0]}</strong>. Seus gastos com "Desejos" estão em ${percDes.toFixed(0)}%.`
-                    });
-                }
-            }
-
-            if (percEss > 50) {
-                const viloesEss = Object.entries(dadosCat).filter(([cat, _]) => categoriasMeta[cat]?.tipo === 'essencial').sort((a, b) => b[1] - a[1]);
-                if (viloesEss.length > 0) {
-                    recomendacoes.push({
-                        icone: 'fa-home text-blue-400',
-                        titulo: 'Otimize os Essenciais',
-                        texto: `Custos essenciais estão altos (${percEss.toFixed(0)}%). O maior peso é <strong>${viloesEss[0][0]}</strong>.`
-                    });
-                }
-            }
-
-            if (percSob > 0 && percSob < 20 && recomendacoes.length < 3) {
-                 recomendacoes.push({
-                    icone: 'fa-arrow-trend-up text-green-400',
-                    titulo: 'Aumente a Poupança',
-                    texto: `Você está salvando ${percSob.toFixed(1)}%, mas a meta é 20%. Tente cortar gastos não essenciais.`
-                });
-            }
-
-            if (recomendacoes.length < 3) {
-                if (dadosCat['Assinaturas']) {
-                     recomendacoes.push({
-                        icone: 'fa-tv text-cyan-400',
-                        titulo: 'Auditoria de Assinaturas',
-                        texto: `Revise se você realmente utiliza todos os serviços de streaming ou clubes.`
-                    });
-                } else if (maioresCategorias.length > 0) {
-                    const maior = maioresCategorias[0];
-                    if(!recomendacoes.some(r => r.texto.includes(maior[0]))) {
-                         recomendacoes.push({
-                            icone: 'fa-search-dollar text-yellow-400',
-                            titulo: 'Foco na Maior Despesa',
-                            texto: `Sua maior despesa é <strong>${maior[0]}</strong>. Uma redução de apenas 10% aqui economizaria ${formatarMoeda(maior[1]*0.1)} no mês.`
-                        });
-                    }
-                }
-            }
-            
-            if (recomendacoes.length === 0 && percSob >= 20) {
-                recomendacoes.push({
-                    icone: 'fa-star text-yellow-400',
-                    titulo: 'Parabéns!',
-                    texto: 'Sua saúde financeira está excelente. Você está dentro da regra 50/30/20. Considere investir o excedente!'
-                });
-            }
-
-            let htmlRec = '';
-            recomendacoes.slice(0, 3).forEach((rec) => {
-                htmlRec += `
-                <div class="bg-gray-800 p-4 rounded-lg border border-gray-700 hover:border-gray-500 transition-colors shadow-sm">
-                    <div class="flex items-start gap-3">
-                        <div class="mt-1 bg-gray-900 p-2 rounded-full"><i class="fas ${rec.icone}"></i></div>
-                        <div>
-                            <h4 class="font-semibold text-gray-100">${rec.titulo}</h4>
-                            <p class="text-sm text-gray-400 mt-1 leading-relaxed">${rec.texto}</p>
-                        </div>
-                    </div>
-                </div>`;
-            });
-
-            container.innerHTML = htmlRec;
-        }
-
-        function salvarDadosLocais() {
-            localStorage.setItem('df_gastos', JSON.stringify(gastos));
-            localStorage.setItem('df_renda', inputRenda.value);
-            localStorage.setItem('df_categorias', JSON.stringify(categoriasMeta));
-        }
-
-        function carregarDadosLocais() {
-            const lGastos = localStorage.getItem('df_gastos');
-            const lRenda = localStorage.getItem('df_renda');
-            const lCats = localStorage.getItem('df_categorias');
-
-            if (lGastos) gastos = JSON.parse(lGastos);
-            if (lRenda) inputRenda.value = lRenda;
-            if (lCats) {
-                const savedCats = JSON.parse(lCats);
-                Object.assign(categoriasMeta, savedCats);
-            }
-        }
-
-        window.onload = init;
-    </script>
-</body>
-</html>
+                <div class="bg-white rounded-xl p-6 card-shadow">
+                    <h2 class="text-lg font-semibold mb-4 border-b pb-2 flex items-center gap-2">
+                        <i class="fas fa-chart-pie text-warning"></i> Distribuição por Categorias
+                    </h2>
