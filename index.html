@@ -171,3 +171,126 @@
                     <h2 class="text-lg font-semibold mb-4 border-b pb-2 flex items-center gap-2">
                         <i class="fas fa-chart-pie text-warning"></i> Distribuição por Categorias
                     </h2>
+                <canvas id="graficoCategorias" class="max-h-64 mx-auto"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let gastos = JSON.parse(localStorage.getItem('gastos_dashboard')) || [];
+        let meuGrafico = null;
+
+        function formatarMoeda(valor) {
+            return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        function adicionarGasto(event) {
+            event.preventDefault();
+            
+            const desc = document.getElementById('descGasto').value;
+            const categoria = document.getElementById('catGasto').value;
+            const valor = parseFloat(document.getElementById('valorGasto').value);
+            const data = document.getElementById('dataGasto').value;
+            const parcelas = parseInt(document.getElementById('parcelasGasto').value);
+
+            const novoGasto = {
+                id: Date.now(),
+                desc,
+                categoria,
+                valor,
+                data,
+                parcelas
+            };
+
+            gastos.push(novoGasto);
+            localStorage.setItem('gastos_dashboard', JSON.stringify(gastos));
+            
+            document.getElementById('formGasto').reset();
+            document.getElementById('parcelasGasto').value = 1;
+            
+            atualizarDashboard();
+        }
+
+        function deletarGasto(id) {
+            gastos = gastos.filter(g => g.id !== id);
+            localStorage.setItem('gastos_dashboard', JSON.stringify(gastos));
+            atualizarDashboard();
+        }
+
+        function atualizarDashboard() {
+            const renda = parseFloat(document.getElementById('rendaMensal').value) || 0;
+            const lista = document.getElementById('listaGastos');
+            lista.innerHTML = '';
+
+            let total = 0;
+            let categoriasValores = { 'Moradia': 0, 'Alimentação': 0, 'Transporte': 0, 'Lazer': 0, 'Outros': 0 };
+
+            gastos.forEach(g => {
+                total += g.valor;
+                if (categoriasValores[g.categoria] !== undefined) {
+                    categoriasValores[g.categoria] += g.valor;
+                } else {
+                    categoriasValores['Outros'] += g.valor;
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50';
+                tr.innerHTML = `
+                    <td class="p-3 font-medium text-dark">${g.desc}</td>
+                    <td class="p-3"><span class="px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs">${g.categoria}</span></td>
+                    <td class="p-3 text-right font-bold">${formatarMoeda(g.valor)}</td>
+                    <td class="p-3 text-center text-sm">${g.data.split('-').reverse().join('/')}</td>
+                    <td class="p-3 text-center text-sm">${g.parcelas}x</td>
+                    <td class="p-3 text-center">
+                        <button onclick="deletarGasto(${g.id})" class="text-danger hover:text-red-700 p-1"><i class="fas fa-trash-alt"></i></button>
+                    </td>
+                `;
+                lista.appendChild(tr);
+            });
+
+            if (gastos.length === 0) {
+                lista.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-400">Nenhum lançamento registrado.</td></tr>`;
+            }
+
+            const saldo = renda - total;
+            document.getElementById('totalGastos').innerText = formatarMoeda(total);
+            document.getElementById('saldoRestante').innerText = formatarMoeda(saldo);
+            
+            const percEssencial = renda > 0 ? ((total / renda) * 100).toFixed(1) : 0;
+            document.getElementById('statusRegra').innerText = `${percEssencial}% / 50%`;
+
+            atualizarGrafico(categoriasValores);
+        }
+
+        function atualizarGrafico(dados) {
+            const ctx = document.getElementById('graficoCategorias').getContext('2d');
+            
+            if (meuGrafico) {
+                meuGrafico.destroy();
+            }
+
+            meuGrafico = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(dados),
+                    datasets: [{
+                        data: Object.values(dados),
+                        backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#9ca3af']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        window.onload = function() {
+            atualizarDashboard();
+        }
+    </script>
+</body>
+</html>
