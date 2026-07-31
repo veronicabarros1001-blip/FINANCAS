@@ -4,146 +4,156 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meu Dashboard Financeiro</title>
-    <!-- Tailwind CSS para o visual moderno e FontAwesome para os ícones -->
-    <script src="https://tailwindcss.com"></script>
-    <link href="https://cloudflare.com" rel="stylesheet">
     <script src="https://jsdelivr.net"></script>
-</head>
-<body class="bg-gray-100 font-sans min-h-screen p-4 md:p-6 text-gray-800">
-
-    <div class="max-w-7xl mx-auto space-y-6">
+    <style>
+        @import url('https://googleapis.com');
         
-        <!-- Topo / Header -->
-        <header class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: #f3f4f6; color: #1f2937; padding: 24px; }
+        .container { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+        
+        header { background: white; padding: 24px; border-radius: 16px; border: 1px solid #e5e7eb; display: flex; flex-direction: column; md:flex-row; justify-content: space-between; align-items: center; gap: 16px; }
+        h1 { font-size: 24px; font-weight: 700; color: #111827; }
+        .subtitle { font-size: 14px; color: #6b7280; margin-top: 4px; }
+        
+        .renda-box { display: flex; align-items: center; gap: 12px; bg-color: #f9fafb; padding: 12px; border-radius: 12px; border: 1px solid #e5e7eb; }
+        .renda-box input { width: 120px; padding: 8px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 16px; font-weight: 700; text-align: right; }
+        
+        .grid-main { display: grid; grid-template-columns: 1fr; gap: 24px; }
+        @media(min-width: 992px) { .grid-main { grid-template-columns: 2fr 1fr; } }
+        
+        .card { background: white; padding: 24px; border-radius: 16px; border: 1px solid #e5e7eb; position: relative; }
+        .card-title { font-size: 16px; font-weight: 700; color: #111827; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+        .form-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+        label { font-size: 12px; font-weight: 600; color: #6b7280; uppercase; tracking: 0.5px; }
+        input[type="text"], select, input[type="number"] { width: 100%; padding: 10px; border: 1px solid #e5e7eb; background: #f9fafb; border-radius: 12px; font-size: 14px; outline: none; }
+        input:focus, select:focus { background: white; border-color: #4f46e5; box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1); }
+        
+        .btn-salvar { background: #4f46e5; color: white; border: none; padding: 11px 24px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        .btn-salvar:hover { background: #4338ca; }
+        .btn-exportar { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; padding: 8px 16px; border-radius: 12px; font-weight: 600; cursor: pointer; }
+        .btn-exportar:hover { background: #d1fae5; }
+        
+        .badge-total { background: #ef4444; color: white; font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 8px; }
+        
+        table { width: 100%; border-collapse: collapse; text-align: left; margin-top: 12px; }
+        th { font-size: 12px; font-weight: 700; color: #9ca3af; text-transform: uppercase; padding-bottom: 12px; border-bottom: 1px solid #f3f4f6; }
+        td { padding: 12px 0; border-bottom: 1px solid #f3f4f6; font-size: 14px; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .btn-deletar { color: #9ca3af; border: none; background: none; cursor: pointer; font-size: 14px; }
+        .btn-deletar:hover { color: #ef4444; }
+        
+        .sobra-box { background: white; padding: 24px; border-radius: 16px; border: 1px solid #e5e7eb; }
+        .sobra-valor { font-size: 30px; font-weight: 900; color: #111827; margin-top: 4px; }
+        .sobra-perc { inline-flex; font-size: 12px; color: #065f46; background: #d1fae5; padding: 2px 8px; border-radius: 9999px; margin-top: 8px; font-weight: 500; }
+        
+        .progress-bar-bg { width: 100%; background: #f3f4f6; h-weight: 6px; height: 6px; border-radius: 999px; margin-top: 8px; overflow: hidden; }
+        .progress-bar-fill { background: #4f46e5; height: 100%; width: 0%; transition: width 0.3s; }
+        
+        .regra-item { margin-top: 16px; }
+        .regra-info { display: flex; justify-content: space-between; font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+        .bar-essencial { background: #38bdf8; height: 4px; border-radius: 999px; }
+        .bar-desejos { background: #fbbf24; height: 4px; border-radius: 999px; }
+        .bar-poupanca { background: #10b981; height: 4px; border-radius: 999px; }
+        
+        .chart-container { position: relative; max-height: 220px; margin: 16px auto 0; }
+        .chart-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #9ca3af; background: white; font-weight: 500; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
             <div>
-                <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                    <span class="p-2 bg-indigo-50 text-indigo-600 rounded-xl"><i class="fas fa-wallet"></i></span> 
-                    Meu Dashboard Financeiro
-                </h1>
-                <p class="text-sm text-gray-500 mt-1">Controle inteligente de gastos, planejamento e projeções</p>
+                <h1>Meu Dashboard Financeiro</h1>
+                <div class="subtitle">Controle inteligente de gastos, planejamento e projeções</div>
             </div>
-            
-            <div class="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-200">
-                <label for="rendaMensal" class="font-semibold text-gray-700 whitespace-nowrap">Renda Líquida:</label>
-                <div class="relative flex-1">
-                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium">R$</span>
-                    <input type="number" id="rendaMensal" value="5000" class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-lg font-bold text-gray-800 transition-all text-right" onchange="atualizarDashboard()">
-                </div>
+            <div class="renda-box">
+                <label>Renda Líquida: R$</label>
+                <input type="number" id="rendaMensal" value="5000" onchange="atualizarDashboard()">
             </div>
         </header>
 
-        <!-- Grade Principal -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <!-- Coluna da Esquerda: Lançamentos -->
-            <div class="lg:col-span-2 space-y-6">
-                
-                <!-- Formulário de Novo Lançamento -->
-                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                    <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <span class="text-emerald-500"><i class="fas fa-plus-circle"></i></span> Novo Lançamento
-                    </h2>
-                    <form id="formGasto" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end" onsubmit="adicionarGasto(event)">
-                        <div class="md:col-span-4">
-                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Descrição</label>
-                            <input type="text" id="descGasto" required class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="Ex: Aluguel...">
+        <div class="grid-main">
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+                <div class="card">
+                    <div class="card-title">Novo Lançamento</div>
+                    <form id="formGasto" class="form-row" onsubmit="adicionarGasto(event)">
+                        <div class="form-group" style="flex: 2;">
+                            <label>Descrição</label>
+                            <input type="text" id="descGasto" required placeholder="Ex: Aluguel...">
                         </div>
-                        <div class="md:col-span-3">
-                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Categoria</label>
-                            <select id="catGasto" required class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
-                                <option value="Essenciais">Essenciais (Meta: 50%)</option>
+                        <div class="form-group" style="flex: 1.5;">
+                            <label>Categoria</label>
+                            <select id="catGasto" required>
+                                <option value="Essenciais">Essenciais (Meta: 50%私人)</option>
                                 <option value="Desejos">Desejos (Meta: 30%)</option>
                                 <option value="Poupança">Poupança (Meta: 20%)</option>
                             </select>
                         </div>
-                        <div class="md:col-span-3">
-                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total (R$)</label>
-                            <div class="relative">
-                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">R$</span>
-                                <input type="number" id="valorGasto" required min="0.01" step="0.01" class="w-full pl-8 pr-3 p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-right transition-all" placeholder="0.00">
-                            </div>
+                        <div class="form-group" style="flex: 1.2;">
+                            <label>Total (R$)</label>
+                            <input type="number" id="valorGasto" required min="0.01" step="0.01" placeholder="0.00" style="text-align: right;">
                         </div>
-                        <div class="md:col-span-2">
-                            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-xl transition-colors flex justify-center items-center gap-2 shadow-sm shadow-indigo-100">
-                                <i class="fas fa-check"></i> Salvar
-                            </button>
-                        </div>
+                        <button type="submit" class="btn-salvar">Salvar</button>
                     </form>
                 </div>
 
-                <!-- Histórico de Lançamentos -->
-                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
-                            <span class="text-indigo-500"><i class="fas fa-list"></i></span> Lançamentos
-                        </h2>
-                        <div class="flex items-center gap-2">
-                            <button onclick="exportarDados()" class="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold text-sm py-2 px-3 rounded-xl transition-all flex items-center gap-1.5 border border-emerald-200">
-                                <i class="fas fa-file-export"></i> Exportar
-                            </button>
-                            <span class="bg-red-500 text-white text-xs font-bold px-3 py-2 rounded-xl" id="badgeTotal">Total: R$ 0,00</span>
+                <div class="card">
+                    <div class="card-title">
+                        <span>Lançamentos</span>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <button onclick="exportarDados()" class="btn-exportar">Exportar</button>
+                            <span class="badge-total" id="badgeTotal">Total: R$ 0,00</span>
                         </div>
                     </div>
-                    
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
+                    <div style="overflow-x: auto;">
+                        <table>
                             <thead>
-                                <tr class="border-b border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                                    <th class="pb-3">Descrição</th>
-                                    <th class="pb-3">Categoria</th>
-                                    <th class="pb-3 text-right">Valor</th>
-                                    <th class="pb-3 text-center">Ações</th>
+                                <tr>
+                                    <th>Descrição</th>
+                                    <th>Categoria</th>
+                                    <th class="text-right">Valor</th>
+                                    <th class="text-center">Ações</th>
                                 </tr>
                             </thead>
-                            <tbody id="listaGastos" class="divide-y divide-gray-50 text-sm text-gray-600">
-                                <!-- Preenchido via Javascript -->
-                            </tbody>
+                            <tbody id="listaGastos"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- Coluna da Direita: Painéis e Gráficos -->
-            <div class="space-y-6">
-                
-                <!-- Painel de Poupança/Sobra -->
-                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 relative overflow-hidden">
-                    <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Potencial de Poupança / Sobra</div>
-                    <div class="text-3xl font-black text-gray-900 mt-1" id="saldoSobra">R$ 5.000,00</div>
-                    <div class="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full mt-2" id="percentualRenda">
-                        100.0% da renda
-                    </div>
-                    <div class="mt-4 pt-3 border-t border-gray-50 flex justify-between items-center text-xs text-gray-400">
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+                <div class="sobra-box">
+                    <label style="text-transform: uppercase; font-weight: 700; font-size: 11px; color: #9ca3af;">Potencial de Poupança / Sobra</label>
+                    <div class="sobra-valor" id="saldoSobra">R$ 5.000,00</div>
+                    <div class="sobra-perc" id="percentualRenda">100.0% da renda</div>
+                    <div style="display: flex; justify-content: space-between; font-size: 12px; color: #9ca3af; margin-top: 16px;">
                         <span id="labelGastosBarra">Gastos: 0.0%</span>
                         <span>Limite ideal: 80%</span>
                     </div>
-                    <div class="w-full bg-gray-100 h-1.5 rounded-full mt-2 overflow-hidden">
-                        <div class="bg-indigo-600 h-full transition-all duration-500" id="barraProgresso" style="width: 0%"></div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="barraProgresso"></div>
                     </div>
                 </div>
 
-                <!-- Análise da Regra 50/30/20 -->
-                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
-                    <div class="flex justify-between items-center border-b border-gray-50 pb-2">
-                        <h3 class="text-sm font-bold text-gray-900">Análise Regra 50/30/20</h3>
-                        <span class="text-indigo-500"><i class="fas fa-scale-balanced"></i></span>
-                    </div>
+                <div class="card">
+                    <div class="card-title" style="font-size: 14px; border-bottom: 1px solid #f3f4f6; padding-bottom: 8px;">Análise Regra 50/30/20</div>
                     
-                    <!-- Essenciais -->
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-xs font-medium">
-                            <span class="text-gray-500">Essenciais (Meta: 50%)</span>
-                            <span class="text-gray-900 font-bold" id="txtEssencial">R$ 0,00 (0.0%)</span>
+                    <div class="regra-item">
+                        <div class="regra-info">
+                            <span style="color: #6b7280;">Essenciais (Meta: 50%)</span>
+                            <span id="txtEssencial" style="font-weight:700;">R$ 0,00 (0.0%)</span>
                         </div>
-                        <div class="w-full bg-gray-100 h-1 rounded-full overflow-hidden">
-                            <div class="bg-sky-400 h-full transition-all" id="barraEssencial" style="width: 0%"></div>
-                        </div>
+                        <div class="progress-bar-bg"><div class="bar-essencial" id="barraEssencial" style="width: 0%"></div></div>
                     </div>
 
-                    <!-- Desejos -->
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-xs font-medium">
-                            <span class="text-gray-500">Desejos (Meta: 30%)</span>
-                            <span class="text-gray-900 font-bold" id="txtDesejos">R$ 0,00 (0.0%)</span>
+                    <div class="regra-item">
+                        <div class="regra-info">
+                            <span style="color: #6b7280;">Desejos (Meta: 30%)</span>
+                            <span id="txtDesejos" style="font-weight:700;">R$ 0,00 (0.0%)</span>
                         </div>
-                        <div class="w-full bg-gray-100 h-1 rounded-full overflow-hidden">
